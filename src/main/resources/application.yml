@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: tiger
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tiger}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+  flyway:
+    enabled: true
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+tiger:
+  polymarket:
+    gamma-base-url: ${TIGER_POLYMARKET_GAMMA_BASE_URL:https://gamma-api.polymarket.com}
+    page-limit: ${TIGER_POLYMARKET_PAGE_LIMIT:100}
+  ingestion:
+    polymarket-events:
+      enabled: false
+      limit: ${TIGER_POLYMARKET_PAGE_LIMIT:100}
+      offset: 0
+    exit-on-complete: false

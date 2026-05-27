@@ -191,15 +191,17 @@ Follow this order unless the project owner reprioritizes:
 
 ## Repository Notes
 
-At the time this file was created, the repo only contained a minimal README. When code is added, update this section with concrete commands.
+This repository is a Java 21 Spring Boot service using PostgreSQL, Flyway, and
+plain JDBC.
 
-Expected future command categories:
+Concrete commands:
 
-- Install dependencies.
-- Run the API service locally.
-- Run database migrations.
-- Run ingestion workers.
-- Run unit and integration tests.
-- Run formatting and linting.
+- Start local PostgreSQL: `docker compose up -d postgres`
+- Run the API service locally: `mvn spring-boot:run`
+- Run database migrations: start the API; Flyway runs `src/main/resources/db/migration`
+  automatically.
+- Run Polymarket ingestion for one events page:
+  `mvn spring-boot:run -Dspring-boot.run.arguments="--tiger.ingestion.polymarket-events.enabled=true --tiger.ingestion.exit-on-complete=true --tiger.ingestion.polymarket-events.limit=100 --tiger.ingestion.polymarket-events.offset=0"`
+- Run unit tests: `mvn test`
 
-Do not invent commands in documentation before they exist in the repo.
+Maven is required for Java build/test commands.
