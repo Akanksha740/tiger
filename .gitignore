@@ -2,4 +2,7 @@ target/
 .idea/
 *.iml
 .env
+secrets/
+*.key
+*.pem
 .DS_Store

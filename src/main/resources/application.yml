@@ -1,6 +1,8 @@
 spring:
   application:
     name: tiger
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tiger}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -23,9 +25,29 @@ tiger:
   polymarket:
     gamma-base-url: ${TIGER_POLYMARKET_GAMMA_BASE_URL:https://gamma-api.polymarket.com}
     page-limit: ${TIGER_POLYMARKET_PAGE_LIMIT:100}
+  kalshi:
+    env: ${KALSHI_ENV:demo}
+    key-id: ${KALSHI_KEY_ID:}
+    private-key-path: ${KALSHI_PRIVATE_KEY_PATH:}
+    api-prefix: /trade-api/v2
+    max-retries: 5
   ingestion:
     polymarket-events:
       enabled: false
       limit: ${TIGER_POLYMARKET_PAGE_LIMIT:100}
       offset: 0
+    kalshi-series:
+      enabled: false
+      # min-updated-ts:  # optional epoch seconds for incremental /series
+    kalshi-events:
+      enabled: false
+      # Keep low with with-nested-markets=true (large JSON payloads per page)
+      page-limit: 50
+      with-nested-markets: true
+    kalshi-open-markets:
+      enabled: false
+      page-limit: 200
+    kalshi-catalog:
+      enabled: false
+      refresh-series: false
     exit-on-complete: false
