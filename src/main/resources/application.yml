@@ -36,6 +36,12 @@ tiger:
       enabled: false
       limit: ${TIGER_POLYMARKET_PAGE_LIMIT:100}
       offset: 0
+    polymarket-catalog:
+      enabled: false
+      page-limit: ${TIGER_POLYMARKET_PAGE_LIMIT:100}
+      start-offset: 0
+      # 0 means continue until Gamma returns fewer than page-limit events
+      max-pages: 0
     kalshi-series:
       enabled: false
       # min-updated-ts:  # optional epoch seconds for incremental /series
