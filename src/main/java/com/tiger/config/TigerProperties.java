@@ -21,6 +21,7 @@ public record TigerProperties(
 
     public record Ingestion(
             PolymarketEvents polymarketEvents,
+            PolymarketCatalog polymarketCatalog,
             KalshiSeries kalshiSeries,
             KalshiEvents kalshiEvents,
             KalshiOpenMarkets kalshiOpenMarkets,
@@ -28,6 +29,12 @@ public record TigerProperties(
             boolean exitOnComplete) {}
 
     public record PolymarketEvents(boolean enabled, int limit, int offset) {}
+
+    /**
+     * Backfills Gamma /events with nested markets. maxPages = 0 means keep
+     * paging until Gamma returns fewer than pageLimit events.
+     */
+    public record PolymarketCatalog(boolean enabled, int pageLimit, int startOffset, int maxPages) {}
 
     public record KalshiSeries(boolean enabled, Long minUpdatedTs) {}
 

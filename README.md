@@ -62,10 +62,75 @@ export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 
 If you see `command not found: mvn`, use **`./mvnw`** from the repo root (Maven Wrapper), not `mvn`.
 
-## Ingest Polymarket Events
+## Ingest Polymarket
+
+Polymarket ingestion uses the Gamma API (`/events`) for discovery metadata and nested
+markets, maps into `events`, `markets`, and `market_outcomes`, and records runs in
+`ingestion_runs` / `ingestion_state`.
+
+Run all commands from the repo root with Java 21:
 
 ```sh
-./mvnw spring-boot:run -Dspring-boot.run.arguments="--tiger.ingestion.polymarket-events.enabled=true --tiger.ingestion.exit-on-complete=true --tiger.ingestion.polymarket-events.limit=100 --tiger.ingestion.polymarket-events.offset=0"
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
+```
+
+### Recommended first-time backfill
+
+```sh
+bash scripts/run-polymarket-catalog.sh
+```
+
+The catalog job pages through Gamma `/events` using `limit`/`offset`, ingesting one
+page at a time. By default `MAX_PAGES=0`, which means it continues until Gamma
+returns fewer than `PAGE_LIMIT` events. To run a bounded smoke test:
+
+```sh
+MAX_PAGES=1 PAGE_LIMIT=100 bash scripts/run-polymarket-catalog.sh
+```
+
+### Scripts
+
+| Script | What it loads |
+|--------|---------------|
+| `scripts/run-polymarket-events.sh` | One Gamma `/events` page -> `events`, `markets`, `market_outcomes` |
+| `scripts/run-polymarket-catalog.sh` | Full paginated Gamma `/events` backfill |
+| `scripts/verify-polymarket-db.sh` | Row counts + samples via Docker Postgres (no local `psql`) |
+
+### Verify data
+
+```sh
+bash scripts/verify-polymarket-db.sh
+```
+
+Reports counts for `events`, `markets`, and `market_outcomes`
+(`exchange='polymarket'`), sample rows, and recent `ingestion_runs`.
+
+With local `psql` (`brew install libpq`):
+
+```sh
+psql postgresql://postgres:postgres@localhost:5432/tiger -c \
+  "SELECT COUNT(*) FROM markets WHERE exchange='polymarket';"
+```
+
+### Spring Boot flags (alternative to scripts)
+
+Enable jobs via CLI instead of editing `.env`:
+
+```sh
+# One events page
+./mvnw spring-boot:run -Dspring-boot.run.arguments="\
+  --tiger.ingestion.polymarket-events.enabled=true \
+  --tiger.ingestion.polymarket-events.limit=100 \
+  --tiger.ingestion.polymarket-events.offset=0 \
+  --tiger.ingestion.exit-on-complete=true"
+
+# Full catalog
+./mvnw spring-boot:run -Dspring-boot.run.arguments="\
+  --tiger.ingestion.polymarket-catalog.enabled=true \
+  --tiger.ingestion.polymarket-catalog.page-limit=100 \
+  --tiger.ingestion.polymarket-catalog.start-offset=0 \
+  --tiger.ingestion.polymarket-catalog.max-pages=0 \
+  --tiger.ingestion.exit-on-complete=true"
 ```
 
 ## Ingest Kalshi
@@ -156,6 +221,10 @@ Enable jobs via CLI instead of editing `.env`:
 | `KALSHI_ENV` | `prod` or `demo` |
 | `KALSHI_KEY_ID` | API key id |
 | `KALSHI_PRIVATE_KEY_PATH` | Path to PEM (default `secrets/kalshi_private.key`) |
+| `TIGER_INGESTION_POLYMARKET_EVENTS_ENABLED` | Run one Polymarket `/events` page on startup |
+| `TIGER_INGESTION_POLYMARKET_CATALOG_ENABLED` | Run Polymarket paginated `/events` catalog job |
+| `TIGER_INGESTION_POLYMARKET_CATALOG_START_OFFSET` | Starting Gamma offset for catalog ingest |
+| `TIGER_INGESTION_POLYMARKET_CATALOG_MAX_PAGES` | Catalog page cap; `0` means until short page |
 | `TIGER_INGESTION_KALSHI_SERIES_ENABLED` | Run series job on startup |
 | `TIGER_INGESTION_KALSHI_EVENTS_ENABLED` | Run events job on startup |
 | `TIGER_INGESTION_KALSHI_OPEN_MARKETS_ENABLED` | Run open markets job on startup |
