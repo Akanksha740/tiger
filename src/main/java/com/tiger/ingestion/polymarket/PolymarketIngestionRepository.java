@@ -33,7 +33,7 @@ public class PolymarketIngestionRepository {
                     title, description, category, tags, status, source_status,
                     start_at, end_at, market_count, active_market_count, market_questions,
                     total_volume, total_liquidity, open_interest, image_url, icon_url,
-                    source_created_at, source_updated_at, discovered_at, raw_payload
+                    source_created_at, source_updated_at, discovered_at
                 )
                 VALUES (
                     :exchange, :source_event_id, :source_event_ticker, :slug, :source_series_id,
@@ -43,7 +43,7 @@ public class PolymarketIngestionRepository {
                     string_to_array(:market_questions, chr(31)),
                     :total_volume, :total_liquidity, :open_interest, :image_url, :icon_url,
                     :source_created_at, :source_updated_at,
-                    COALESCE(:source_created_at, now()), CAST(:raw_payload AS jsonb)
+                    COALESCE(:source_created_at, now())
                 )
                 ON CONFLICT (exchange, source_event_id) DO UPDATE SET
                     source_event_ticker = EXCLUDED.source_event_ticker,
@@ -68,7 +68,6 @@ public class PolymarketIngestionRepository {
                     source_created_at = EXCLUDED.source_created_at,
                     source_updated_at = EXCLUDED.source_updated_at,
                     last_seen_at = now(),
-                    raw_payload = EXCLUDED.raw_payload,
                     updated_at = now()
                 RETURNING id
                 """;
@@ -97,7 +96,6 @@ public class PolymarketIngestionRepository {
                 .param("icon_url", event.iconUrl())
                 .param("source_created_at", event.sourceCreatedAt())
                 .param("source_updated_at", event.sourceUpdatedAt())
-                .param("raw_payload", event.rawPayloadJson())
                 .query(UUID.class)
                 .single();
     }
@@ -110,8 +108,7 @@ public class PolymarketIngestionRepository {
                     source_series_id, question, title, description, category, tags, status,
                     source_status, last_yes_price, last_no_price, volume, liquidity,
                     start_at, end_at, open_at, close_at, interval_code, interval_seconds,
-                    image_url, icon_url, source_created_at, source_updated_at, discovered_at,
-                    raw_payload
+                    image_url, icon_url, source_created_at, source_updated_at, discovered_at
                 )
                 VALUES (
                     :exchange, :source_market_id, :condition_id, :slug, :event_id, :source_event_id,
@@ -120,7 +117,7 @@ public class PolymarketIngestionRepository {
                     CAST(:source_status AS jsonb), :last_yes_price, :last_no_price, :volume, :liquidity,
                     :start_at, :end_at, :open_at, :close_at, :interval_code, :interval_seconds,
                     :image_url, :icon_url, :source_created_at, :source_updated_at,
-                    COALESCE(:source_created_at, now()), CAST(:raw_payload AS jsonb)
+                    COALESCE(:source_created_at, now())
                 )
                 ON CONFLICT (exchange, source_market_id) DO UPDATE SET
                     condition_id = EXCLUDED.condition_id,
@@ -150,7 +147,6 @@ public class PolymarketIngestionRepository {
                     source_created_at = EXCLUDED.source_created_at,
                     source_updated_at = EXCLUDED.source_updated_at,
                     last_seen_at = now(),
-                    raw_payload = EXCLUDED.raw_payload,
                     updated_at = now()
                 RETURNING id
                 """;
@@ -184,7 +180,6 @@ public class PolymarketIngestionRepository {
                 .param("icon_url", market.iconUrl())
                 .param("source_created_at", market.sourceCreatedAt())
                 .param("source_updated_at", market.sourceUpdatedAt())
-                .param("raw_payload", market.rawPayloadJson())
                 .query(UUID.class)
                 .single();
     }
@@ -199,11 +194,11 @@ public class PolymarketIngestionRepository {
                             """
                             INSERT INTO market_outcomes (
                                 market_id, exchange, source_market_id, outcome_key, outcome_name,
-                                side, token_id, position, last_price, raw_payload
+                                side, token_id, position, last_price
                             )
                             VALUES (
                                 :market_id, :exchange, :source_market_id, :outcome_key, :outcome_name,
-                                :side, :token_id, :position, :last_price, '{}'::jsonb
+                                :side, :token_id, :position, :last_price
                             )
                             """)
                     .param("market_id", marketId)

@@ -31,5 +31,4 @@ public record NormalizedMarket(
         String iconUrl,
         OffsetDateTime sourceCreatedAt,
         OffsetDateTime sourceUpdatedAt,
-        String rawPayloadJson,
         List<NormalizedOutcome> outcomes) {}

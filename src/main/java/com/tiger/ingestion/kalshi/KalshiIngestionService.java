@@ -97,6 +97,7 @@ public class KalshiIngestionService {
             Map<String, Object> params = new LinkedHashMap<>();
             params.put("limit", properties.ingestion().kalshiEvents().pageLimit());
             params.put("with_nested_markets", String.valueOf(withNestedMarkets).toLowerCase());
+            params.put("include_volume", "true");
             apiClient.forEachPage(
                     "/events",
                     "events",
@@ -159,6 +160,7 @@ public class KalshiIngestionService {
             params.put("limit", properties.ingestion().kalshiOpenMarkets().pageLimit());
             params.put("status", "open");
             params.put("mve_filter", "exclude");
+            params.put("include_volume", "true");
             apiClient.forEachPage(
                     "/markets",
                     "markets",

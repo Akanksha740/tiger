@@ -1,9 +1,6 @@
 package com.tiger.ingestion.kalshi;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tiger.domain.CanonicalStatus;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,16 +10,10 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import org.springframework.stereotype.Component;
 
 @Component
 public class KalshiNormalizer {
-    private final ObjectMapper objectMapper;
-
-    public KalshiNormalizer(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     public List<NormalizedSeries> normalizeSeriesList(JsonNode response) {
         JsonNode series = response.path("series");
@@ -49,8 +40,7 @@ public class KalshiNormalizer {
                 KalshiStatusNormalizer.normalize(series, "status"),
                 KalshiStatusNormalizer.sourceStatusJson(series, "status"),
                 number(series, "volume_fp", "volume"),
-                sourceTimestamp(series, "last_updated_ts"),
-                toJson(series));
+                sourceTimestamp(series, "last_updated_ts"));
     }
 
     public List<NormalizedEvent> normalizeEvents(List<JsonNode> events) {
@@ -88,7 +78,6 @@ public class KalshiNormalizer {
                 marketQuestions,
                 number(event, "volume_fp", "volume"),
                 sourceTimestamp(event, "last_updated_ts"),
-                toJson(event),
                 markets);
     }
 
@@ -143,7 +132,6 @@ public class KalshiNormalizer {
                 sourceTimestamp(market, "close_time"),
                 sourceTimestamp(market, "settlement_ts"),
                 sourceTimestamp(market, "last_updated_ts"),
-                toJson(market),
                 buildOutcomes(market));
     }
 
@@ -162,35 +150,34 @@ public class KalshiNormalizer {
     private List<NormalizedOutcome> buildOutcomes(JsonNode market) {
         BigDecimal yesLast = number(market, "last_price_dollars");
         BigDecimal settlement = number(market, "settlement_value_dollars");
-        ObjectNode yesPayload = objectMapper.createObjectNode();
-        copyIfPresent(market, yesPayload, "yes_sub_title");
-        copyIfPresent(market, yesPayload, "yes_bid_size_fp");
-        copyIfPresent(market, yesPayload, "yes_ask_size_fp");
-
-        ObjectNode noPayload = objectMapper.createObjectNode();
-        copyIfPresent(market, noPayload, "no_sub_title");
+        String yesName = firstText(market, "yes_sub_title");
+        if (yesName == null) {
+            yesName = "YES";
+        }
+        String noName = firstText(market, "no_sub_title");
+        if (noName == null) {
+            noName = "NO";
+        }
 
         return List.of(
                 new NormalizedOutcome(
                         "yes",
-                        "YES",
+                        yesName,
                         "yes",
                         0,
                         yesLast,
                         number(market, "yes_bid_dollars"),
                         number(market, "yes_ask_dollars"),
-                        settlement,
-                        toJson(yesPayload)),
+                        settlement),
                 new NormalizedOutcome(
                         "no",
-                        "NO",
+                        noName,
                         "no",
                         1,
                         oneMinus(yesLast),
                         number(market, "no_bid_dollars"),
                         number(market, "no_ask_dollars"),
-                        oneMinus(settlement),
-                        toJson(noPayload)));
+                        oneMinus(settlement)));
     }
 
     private List<String> stringTags(JsonNode tagsNode) {
@@ -297,25 +284,10 @@ public class KalshiNormalizer {
                 try {
                     return OffsetDateTime.ofInstant(Instant.ofEpochSecond(Long.parseLong(text)), ZoneOffset.UTC);
                 } catch (NumberFormatException ignoredAgain) {
-                    // Keep in raw_payload.
+                    // Skip unparseable timestamps.
                 }
             }
         }
         return null;
-    }
-
-    private void copyIfPresent(JsonNode source, ObjectNode target, String field) {
-        JsonNode value = source.path(field);
-        if (!value.isMissingNode() && !value.isNull()) {
-            target.set(field, value);
-        }
-    }
-
-    private String toJson(JsonNode node) {
-        try {
-            return objectMapper.writeValueAsString(node);
-        } catch (JsonProcessingException exception) {
-            throw new IllegalArgumentException("Unable to serialize Kalshi payload", exception);
-        }
     }
 }

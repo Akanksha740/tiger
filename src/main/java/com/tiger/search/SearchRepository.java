@@ -40,9 +40,9 @@ public class SearchRepository {
                   AND (CAST(:category AS text) IS NULL OR category = :category)
                   AND (
                         CAST(:q AS text) IS NULL
-                        OR search_vector @@ websearch_to_tsquery('english', :q)
                         OR source_series_id ILIKE '%' || :q || '%'
                         OR title ILIKE '%' || :q || '%'
+                        OR subtitle ILIKE '%' || :q || '%'
                         OR lower(interval_code) = lower(:q)
                         OR lower(:q) = ANY(aliases)
                   )
@@ -92,13 +92,17 @@ public class SearchRepository {
                   )
                   AND (
                         CAST(:q AS text) IS NULL
-                        OR e.search_vector @@ websearch_to_tsquery('english', :q)
                         OR e.title ILIKE '%' || :q || '%'
+                        OR e.subtitle ILIKE '%' || :q || '%'
                         OR e.source_event_id ILIKE '%' || :q || '%'
+                        OR EXISTS (
+                            SELECT 1
+                            FROM unnest(e.market_questions) AS mq(question)
+                            WHERE mq.question ILIKE '%' || :q || '%'
+                        )
                   )
                 ORDER BY
                   CASE WHEN CAST(:q AS text) IS NOT NULL AND lower(e.source_event_id) = lower(:q) THEN 100 ELSE 0 END DESC,
-                  ts_rank_cd(e.search_vector, websearch_to_tsquery('english', COALESCE(CAST(:q AS text), ''))) DESC,
                   CASE WHEN e.status = 'active' THEN 20 ELSE 0 END DESC,
                   e.end_at ASC NULLS LAST,
                   e.total_volume DESC NULLS LAST,
@@ -150,15 +154,17 @@ public class SearchRepository {
                   )
                   AND (
                         CAST(:q AS text) IS NULL
-                        OR m.search_vector @@ websearch_to_tsquery('english', :q)
                         OR m.question ILIKE '%' || :q || '%'
+                        OR m.title ILIKE '%' || :q || '%'
+                        OR m.subtitle ILIKE '%' || :q || '%'
+                        OR m.rules_primary ILIKE '%' || :q || '%'
                         OR m.source_market_id ILIKE '%' || :q || '%'
+                        OR m.slug ILIKE '%' || :q || '%'
                         OR lower(m.interval_code) = lower(:q)
                   )
                 ORDER BY
                   CASE WHEN CAST(:q AS text) IS NOT NULL AND lower(m.source_market_id) = lower(:q) THEN 100 ELSE 0 END DESC,
                   CASE WHEN CAST(:q AS text) IS NOT NULL AND lower(m.interval_code) = lower(:q) THEN 80 ELSE 0 END DESC,
-                  ts_rank_cd(m.search_vector, websearch_to_tsquery('english', COALESCE(CAST(:q AS text), ''))) DESC,
                   CASE WHEN m.status = 'active' THEN 20 ELSE 0 END DESC,
                   ln(COALESCE(m.volume, 0) + 1) * 0.5 DESC,
                   ln(COALESCE(m.liquidity, 0) + 1) * 0.3 DESC,

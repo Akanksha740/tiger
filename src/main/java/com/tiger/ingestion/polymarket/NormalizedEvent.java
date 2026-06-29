@@ -28,5 +28,4 @@ public record NormalizedEvent(
         String iconUrl,
         OffsetDateTime sourceCreatedAt,
         OffsetDateTime sourceUpdatedAt,
-        String rawPayloadJson,
         List<NormalizedMarket> markets) {}

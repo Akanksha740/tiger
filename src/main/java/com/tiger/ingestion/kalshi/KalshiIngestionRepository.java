@@ -96,7 +96,6 @@ public class KalshiIngestionRepository {
                         List.of(market.question()),
                         market.volume(),
                         market.sourceUpdatedAt(),
-                        "{}",
                         List.of());
         return upsertEvent(placeholder);
     }
@@ -114,8 +113,7 @@ public class KalshiIngestionRepository {
                         market.status(),
                         market.sourceStatusJson(),
                         null,
-                        market.sourceUpdatedAt(),
-                        "{}");
+                        market.sourceUpdatedAt());
         return upsertSeriesRow(placeholder);
     }
 
@@ -132,8 +130,7 @@ public class KalshiIngestionRepository {
                         event.status(),
                         event.sourceStatusJson(),
                         null,
-                        event.sourceUpdatedAt(),
-                        "{}");
+                        event.sourceUpdatedAt());
         return upsertSeriesRow(placeholder);
     }
 
@@ -142,13 +139,12 @@ public class KalshiIngestionRepository {
                 """
                 INSERT INTO series (
                     exchange, source_series_id, source_ticker, title, subtitle, category, tags,
-                    frequency, status, source_status, total_volume, source_updated_at, raw_payload
+                    frequency, status, source_status, total_volume, source_updated_at
                 )
                 VALUES (
                     :exchange, :source_series_id, :source_ticker, :title, :subtitle, :category,
                     string_to_array(:tags, chr(31)), :frequency, :status,
-                    CAST(:source_status AS jsonb), :total_volume, :source_updated_at,
-                    CAST(:raw_payload AS jsonb)
+                    CAST(:source_status AS jsonb), :total_volume, :source_updated_at
                 )
                 ON CONFLICT (exchange, source_series_id) DO UPDATE SET
                     source_ticker = EXCLUDED.source_ticker,
@@ -162,7 +158,6 @@ public class KalshiIngestionRepository {
                     total_volume = EXCLUDED.total_volume,
                     source_updated_at = EXCLUDED.source_updated_at,
                     last_seen_at = now(),
-                    raw_payload = EXCLUDED.raw_payload,
                     updated_at = now()
                 RETURNING id
                 """;
@@ -180,7 +175,6 @@ public class KalshiIngestionRepository {
                 .param("source_status", series.sourceStatusJson())
                 .param("total_volume", series.totalVolume())
                 .param("source_updated_at", series.sourceUpdatedAt())
-                .param("raw_payload", series.rawPayloadJson())
                 .query(UUID.class)
                 .single();
     }
@@ -196,7 +190,7 @@ public class KalshiIngestionRepository {
                     exchange, source_event_id, source_event_ticker, source_series_id, series_id,
                     title, subtitle, category, tags, status, source_status,
                     start_at, end_at, market_count, active_market_count, market_questions,
-                    total_volume, source_updated_at, raw_payload
+                    total_volume, source_updated_at
                 )
                 VALUES (
                     :exchange, :source_event_id, :source_event_ticker, :source_series_id, :series_id,
@@ -204,7 +198,7 @@ public class KalshiIngestionRepository {
                     :status, CAST(:source_status AS jsonb),
                     :start_at, :end_at, :market_count, :active_market_count,
                     string_to_array(:market_questions, chr(31)),
-                    :total_volume, :source_updated_at, CAST(:raw_payload AS jsonb)
+                    :total_volume, :source_updated_at
                 )
                 ON CONFLICT (exchange, source_event_id) DO UPDATE SET
                     source_event_ticker = EXCLUDED.source_event_ticker,
@@ -224,7 +218,6 @@ public class KalshiIngestionRepository {
                     total_volume = EXCLUDED.total_volume,
                     source_updated_at = EXCLUDED.source_updated_at,
                     last_seen_at = now(),
-                    raw_payload = EXCLUDED.raw_payload,
                     updated_at = now()
                 RETURNING id
                 """;
@@ -248,7 +241,6 @@ public class KalshiIngestionRepository {
                 .param("market_questions", textArray(event.marketQuestions()))
                 .param("total_volume", event.totalVolume())
                 .param("source_updated_at", event.sourceUpdatedAt())
-                .param("raw_payload", event.rawPayloadJson())
                 .query(UUID.class)
                 .single();
     }
@@ -272,7 +264,7 @@ public class KalshiIngestionRepository {
                     rules_secondary, category, tags, status, source_status,
                     last_yes_price, last_no_price, best_yes_bid, best_yes_ask, best_no_bid, best_no_ask,
                     volume, volume_24h, open_interest, liquidity, settlement_value,
-                    open_at, close_at, settled_at, source_updated_at, raw_payload
+                    open_at, close_at, settled_at, source_updated_at
                 )
                 VALUES (
                     :exchange, :source_market_id, :source_market_ticker, :event_id, :source_event_id,
@@ -281,7 +273,7 @@ public class KalshiIngestionRepository {
                     CAST(:source_status AS jsonb), :last_yes_price, :last_no_price,
                     :best_yes_bid, :best_yes_ask, :best_no_bid, :best_no_ask,
                     :volume, :volume_24h, :open_interest, :liquidity, :settlement_value,
-                    :open_at, :close_at, :settled_at, :source_updated_at, CAST(:raw_payload AS jsonb)
+                    :open_at, :close_at, :settled_at, :source_updated_at
                 )
                 ON CONFLICT (exchange, source_market_id) DO UPDATE SET
                     source_market_ticker = EXCLUDED.source_market_ticker,
@@ -314,7 +306,6 @@ public class KalshiIngestionRepository {
                     settled_at = EXCLUDED.settled_at,
                     source_updated_at = EXCLUDED.source_updated_at,
                     last_seen_at = now(),
-                    raw_payload = EXCLUDED.raw_payload,
                     updated_at = now()
                 RETURNING id
                 """;
@@ -351,7 +342,6 @@ public class KalshiIngestionRepository {
                 .param("close_at", market.closeAt())
                 .param("settled_at", market.settledAt())
                 .param("source_updated_at", market.sourceUpdatedAt())
-                .param("raw_payload", market.rawPayloadJson())
                 .query(UUID.class)
                 .single();
     }
@@ -363,13 +353,11 @@ public class KalshiIngestionRepository {
                             """
                             INSERT INTO market_outcomes (
                                 market_id, exchange, source_market_id, outcome_key, outcome_name,
-                                side, position, last_price, best_bid, best_ask, settlement_value,
-                                raw_payload
+                                side, position, last_price, best_bid, best_ask, settlement_value
                             )
                             VALUES (
                                 :market_id, :exchange, :source_market_id, :outcome_key, :outcome_name,
-                                :side, :position, :last_price, :best_bid, :best_ask, :settlement_value,
-                                CAST(:raw_payload AS jsonb)
+                                :side, :position, :last_price, :best_bid, :best_ask, :settlement_value
                             )
                             ON CONFLICT (market_id, outcome_key) DO UPDATE SET
                                 outcome_name = EXCLUDED.outcome_name,
@@ -379,7 +367,6 @@ public class KalshiIngestionRepository {
                                 best_bid = EXCLUDED.best_bid,
                                 best_ask = EXCLUDED.best_ask,
                                 settlement_value = EXCLUDED.settlement_value,
-                                raw_payload = EXCLUDED.raw_payload,
                                 updated_at = now()
                             """)
                     .param("market_id", marketId)
@@ -393,7 +380,6 @@ public class KalshiIngestionRepository {
                     .param("best_bid", outcome.bestBid())
                     .param("best_ask", outcome.bestAsk())
                     .param("settlement_value", outcome.settlementValue())
-                    .param("raw_payload", outcome.rawPayloadJson())
                     .update();
         }
     }

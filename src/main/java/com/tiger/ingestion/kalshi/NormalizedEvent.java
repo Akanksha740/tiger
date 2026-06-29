@@ -24,5 +24,4 @@ public record NormalizedEvent(
         List<String> marketQuestions,
         BigDecimal totalVolume,
         OffsetDateTime sourceUpdatedAt,
-        String rawPayloadJson,
         List<NormalizedMarket> markets) {}

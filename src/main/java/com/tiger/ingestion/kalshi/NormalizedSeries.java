@@ -16,5 +16,4 @@ public record NormalizedSeries(
         CanonicalStatus status,
         String sourceStatusJson,
         BigDecimal totalVolume,
-        OffsetDateTime sourceUpdatedAt,
-        String rawPayloadJson) {}
+        OffsetDateTime sourceUpdatedAt) {}

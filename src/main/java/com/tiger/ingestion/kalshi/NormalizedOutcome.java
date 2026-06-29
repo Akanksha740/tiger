@@ -10,5 +10,4 @@ public record NormalizedOutcome(
         BigDecimal lastPrice,
         BigDecimal bestBid,
         BigDecimal bestAsk,
-        BigDecimal settlementValue,
-        String rawPayloadJson) {}
+        BigDecimal settlementValue) {}

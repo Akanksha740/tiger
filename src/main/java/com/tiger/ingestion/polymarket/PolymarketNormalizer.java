@@ -76,7 +76,6 @@ public class PolymarketNormalizer {
                 text(event, "icon", "iconUrl"),
                 timestamp(event, "createdAt", "created_at"),
                 timestamp(event, "updatedAt", "updated_at"),
-                toJson(event),
                 markets);
     }
 
@@ -155,7 +154,6 @@ public class PolymarketNormalizer {
                 text(market, "icon", "iconUrl"),
                 timestamp(market, "createdAt", "created_at"),
                 timestamp(market, "updatedAt", "updated_at"),
-                toJson(market),
                 outcomes);
     }
 
@@ -300,7 +298,7 @@ public class PolymarketNormalizer {
             try {
                 return OffsetDateTime.parse(value);
             } catch (DateTimeParseException ignored) {
-                // Keep unmapped source timestamp in raw_payload instead of guessing.
+                // Skip unparseable timestamps.
             }
         }
         return null;

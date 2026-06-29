@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 class KalshiNormalizerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final KalshiNormalizer normalizer = new KalshiNormalizer(objectMapper);
+    private final KalshiNormalizer normalizer = new KalshiNormalizer();
 
     @Test
     void normalizesSeriesFromKalshiPayload() throws Exception {
