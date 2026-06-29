@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
 # Ingest one Polymarket Gamma /events page with nested markets and outcomes.
 set -euo pipefail
-cd "$(dirname "$0")/.."
-
-if [[ ! -f .env ]]; then
-  echo "Missing .env - copy .env.example first"
-  exit 1
-fi
+# shellcheck source=_common.sh
+source "$(dirname "$0")/_common.sh"
+tiger_require_postgres
+tiger_prepare_java
 
 LIMIT="${LIMIT:-100}"
 OFFSET="${OFFSET:-0}"
-export JAVA_HOME="${JAVA_HOME:-$(/usr/libexec/java_home -v 21)}"
 export MAVEN_OPTS="${MAVEN_OPTS:--Xmx2g}"
 
 echo "Starting Polymarket events ingest (limit=${LIMIT}, offset=${OFFSET}, heap=${MAVEN_OPTS})..."

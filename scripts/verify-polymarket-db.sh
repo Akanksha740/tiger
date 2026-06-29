@@ -1,17 +1,12 @@
 #!/usr/bin/env bash
-# Query Polymarket rows in Postgres without a local psql install.
+# Query Polymarket rows in Postgres.
 set -euo pipefail
-cd "$(dirname "$0")/.."
-
-SERVICE="${TIGER_POSTGRES_SERVICE:-postgres}"
-
-if ! docker compose ps --status running --format '{{.Service}}' 2>/dev/null | grep -qx "$SERVICE"; then
-  echo "Postgres is not running. Start it with: docker compose up -d postgres"
-  exit 1
-fi
+# shellcheck source=_common.sh
+source "$(dirname "$0")/_common.sh"
+tiger_require_postgres
 
 run_sql() {
-  docker compose exec -T "$SERVICE" psql -U postgres -d tiger -c "$1"
+  tiger_run_sql "$1"
 }
 
 echo "=== counts (polymarket) ==="
