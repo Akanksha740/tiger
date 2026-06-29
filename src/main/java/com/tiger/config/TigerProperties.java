@@ -38,10 +38,15 @@ public record TigerProperties(
 
     public record KalshiSeries(boolean enabled, Long minUpdatedTs) {}
 
-    public record KalshiEvents(boolean enabled, int pageLimit, boolean withNestedMarkets) {}
+    public record KalshiEvents(
+            boolean enabled, int pageLimit, boolean withNestedMarkets, boolean incremental, Long minUpdatedTs) {}
 
     public record KalshiOpenMarkets(boolean enabled, int pageLimit) {}
 
-    /** Runs events (nested markets + outcomes) then open /markets. */
-    public record KalshiCatalog(boolean enabled, boolean refreshSeries) {}
+    /**
+     * Runs events (nested markets + outcomes) then open /markets. When {@code incremental} is
+     * true, refreshes series incrementally, bootstraps events for newly inserted series, then
+     * polls {@code GET /events?min_updated_ts=...} and open markets.
+     */
+    public record KalshiCatalog(boolean enabled, boolean refreshSeries, boolean incremental) {}
 }

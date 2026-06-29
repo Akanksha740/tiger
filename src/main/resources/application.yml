@@ -50,10 +50,15 @@ tiger:
       # Keep low with with-nested-markets=true (large JSON payloads per page)
       page-limit: 50
       with-nested-markets: true
+      # When true, poll GET /events?min_updated_ts=... instead of a full catalog scan
+      incremental: false
+      # min-updated-ts:  # optional epoch seconds; defaults to ingestion_state watermark
     kalshi-open-markets:
       enabled: false
       page-limit: 200
     kalshi-catalog:
       enabled: false
       refresh-series: false
+      # When true, incremental series + events-for-new-series + events min_updated_ts + open markets
+      incremental: false
     exit-on-complete: false

@@ -161,6 +161,28 @@ bash scripts/run-kalshi-catalog.sh
 REFRESH_SERIES=1 bash scripts/run-kalshi-catalog.sh
 ```
 
+### Ongoing incremental sync (after first backfill)
+
+Use **`run-kalshi-catalog-incremental.sh`** on a schedule (cron, etc.) instead of re-running the full catalog:
+
+1. `GET /series?min_updated_ts=...` — only series changed since last run  
+2. `GET /events?series_ticker=...` — bootstrap events for **newly inserted** series  
+3. `GET /events?min_updated_ts=...` — event/market updates on existing series  
+4. `GET /markets?status=open` — open markets catch-up  
+
+```sh
+bash scripts/run-kalshi-catalog-incremental.sh
+```
+
+Events-only delta (no series/open-markets pass):
+
+```sh
+./mvnw spring-boot:run -Dspring-boot.run.arguments="\
+  --tiger.ingestion.kalshi-events.enabled=true \
+  --tiger.ingestion.kalshi-events.incremental=true \
+  --tiger.ingestion.exit-on-complete=true"
+```
+
 Catalog ingest can take several minutes (many paginated API calls). Ingestion processes **one API page at a time** (default **50 events/page** with nested markets) so the full catalog is not held in heap. If you still hit `OutOfMemoryError`, lower `tiger.ingestion.kalshi-events.page-limit` or set `with-nested-markets: false` and rely on the open-markets pass.
 
 ### Scripts
@@ -169,7 +191,8 @@ Catalog ingest can take several minutes (many paginated API calls). Ingestion pr
 |--------|----------------|
 | `scripts/run-kalshi-series.sh` | `GET /series` → `series` table |
 | `scripts/run-kalshi-events.sh` | `GET /events?with_nested_markets=true` → `events`, `markets`, `market_outcomes` |
-| `scripts/run-kalshi-catalog.sh` | events + outcomes, then `GET /markets?status=open` (recommended after series) |
+| `scripts/run-kalshi-catalog.sh` | Full events + outcomes, then `GET /markets?status=open` (first backfill) |
+| `scripts/run-kalshi-catalog-incremental.sh` | Incremental series + events for new series + events delta + open markets |
 | `scripts/verify-kalshi-db.sh` | row counts + samples via Docker Postgres (no local `psql`) |
 
 ### Verify data
@@ -208,6 +231,12 @@ Enable jobs via CLI instead of editing `.env`:
   --tiger.ingestion.kalshi-catalog.refresh-series=false \
   --tiger.ingestion.exit-on-complete=true"
 
+# Incremental catalog sync (after first backfill)
+./mvnw spring-boot:run -Dspring-boot.run.arguments="\
+  --tiger.ingestion.kalshi-catalog.enabled=true \
+  --tiger.ingestion.kalshi-catalog.incremental=true \
+  --tiger.ingestion.exit-on-complete=true"
+
 # Open markets only (best after events ingest; creates placeholder events if needed)
 ./mvnw spring-boot:run -Dspring-boot.run.arguments="\
   --tiger.ingestion.kalshi-open-markets.enabled=true \
@@ -230,6 +259,8 @@ Enable jobs via CLI instead of editing `.env`:
 | `TIGER_INGESTION_KALSHI_OPEN_MARKETS_ENABLED` | Run open markets job on startup |
 | `TIGER_INGESTION_KALSHI_CATALOG_ENABLED` | Run catalog job (events + open markets) |
 | `TIGER_INGESTION_KALSHI_CATALOG_REFRESH_SERIES` | Also reload `/series` when catalog runs |
+| `TIGER_INGESTION_KALSHI_CATALOG_INCREMENTAL` | Incremental catalog sync instead of full events scan |
+| `TIGER_INGESTION_KALSHI_EVENTS_INCREMENTAL` | Poll `GET /events?min_updated_ts=...` instead of full scan |
 | `TIGER_INGESTION_EXIT_ON_COMPLETE` | Exit JVM after one-shot ingest |
 
 See `.env.example` for a full template.
