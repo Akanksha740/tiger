@@ -10,11 +10,15 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnBean(KalshiApiClient.class)
+@ConditionalOnExpression(
+        "${tiger.ingestion.kalshi-series.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-events.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-open-markets.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-catalog.enabled:false}")
 public class KalshiIngestionService {
     private static final Logger log = LoggerFactory.getLogger(KalshiIngestionService.class);
     private static final String ENTITY_SERIES = "series";

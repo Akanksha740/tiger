@@ -8,13 +8,17 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
-@ConditionalOnProperty(prefix = "tiger.kalshi", name = "key-id")
+@ConditionalOnExpression(
+        "${tiger.ingestion.kalshi-series.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-events.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-open-markets.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-catalog.enabled:false}")
 public class KalshiApiClient {
     private static final Duration RETRY_BACKOFF = Duration.ofSeconds(1);
 

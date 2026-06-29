@@ -8,11 +8,15 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnBean(KalshiIngestionService.class)
+@ConditionalOnExpression(
+        "${tiger.ingestion.kalshi-series.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-events.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-open-markets.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-catalog.enabled:false}")
 public class KalshiIngestionRunner implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(KalshiIngestionRunner.class);
 
