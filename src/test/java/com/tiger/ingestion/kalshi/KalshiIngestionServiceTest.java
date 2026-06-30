@@ -52,6 +52,7 @@ class KalshiIngestionServiceTest {
                                 new TigerProperties.PolymarketEvents(false, 100, 0),
                                 new TigerProperties.PolymarketCatalog(false, 100, 0, 0),
                                 new TigerProperties.PolymarketOrderbookSnapshots(false, false, 100, 60_000),
+                                new TigerProperties.KalshiOrderbookSnapshots(false, false, 0, 60_000, 3, 1_000, 16),
                                 new TigerProperties.KalshiSeries(false, null),
                                 new TigerProperties.KalshiEvents(false, 50, true, false, null),
                                 new TigerProperties.KalshiOpenMarkets(false, 200),

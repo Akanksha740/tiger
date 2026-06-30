@@ -2,6 +2,7 @@ package com.tiger.ingestion.kalshi;
 
 import com.tiger.config.TigerProperties;
 import com.tiger.ingestion.kalshi.KalshiIngestionService.IngestionCounters;
+import com.tiger.ingestion.kalshi.KalshiOrderbookSnapshotService.SnapshotPollResult;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,19 +18,23 @@ import org.springframework.stereotype.Component;
         "${tiger.ingestion.kalshi-series.enabled:false}"
                 + " || ${tiger.ingestion.kalshi-events.enabled:false}"
                 + " || ${tiger.ingestion.kalshi-open-markets.enabled:false}"
-                + " || ${tiger.ingestion.kalshi-catalog.enabled:false}")
+                + " || ${tiger.ingestion.kalshi-catalog.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-orderbook-snapshots.enabled:false}")
 public class KalshiIngestionRunner implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(KalshiIngestionRunner.class);
 
     private final KalshiIngestionService ingestionService;
+    private final KalshiOrderbookSnapshotService orderbookSnapshotService;
     private final TigerProperties properties;
     private final ApplicationContext applicationContext;
 
     public KalshiIngestionRunner(
             KalshiIngestionService ingestionService,
+            KalshiOrderbookSnapshotService orderbookSnapshotService,
             TigerProperties properties,
             ApplicationContext applicationContext) {
         this.ingestionService = ingestionService;
+        this.orderbookSnapshotService = orderbookSnapshotService;
         this.properties = properties;
         this.applicationContext = applicationContext;
     }
@@ -130,6 +135,21 @@ public class KalshiIngestionRunner implements ApplicationRunner {
                     result.fetched,
                     result.inserted,
                     result.failed);
+            ran = true;
+        }
+
+        TigerProperties.KalshiOrderbookSnapshots snapshotJob = properties.ingestion().kalshiOrderbookSnapshots();
+        if (snapshotJob.enabled()) {
+            SnapshotPollResult result =
+                    orderbookSnapshotService.pollActiveMarkets(
+                            snapshotJob.limit(), snapshotJob.samples(), snapshotJob.sampleIntervalMs());
+            log.info(
+                    "Completed Kalshi orderbook poll: markets={} samples={} inserted={} skipped={} failed={}",
+                    result.marketsScanned(),
+                    result.samplesTaken(),
+                    result.snapshotsInserted(),
+                    result.marketsSkipped(),
+                    result.failures());
             ran = true;
         }
 

@@ -22,6 +22,7 @@ public record TigerProperties(Polymarket polymarket, Kalshi kalshi, Ingestion in
             PolymarketEvents polymarketEvents,
             PolymarketCatalog polymarketCatalog,
             PolymarketOrderbookSnapshots polymarketOrderbookSnapshots,
+            KalshiOrderbookSnapshots kalshiOrderbookSnapshots,
             KalshiSeries kalshiSeries,
             KalshiEvents kalshiEvents,
             KalshiOpenMarkets kalshiOpenMarkets,
@@ -38,6 +39,15 @@ public record TigerProperties(Polymarket polymarket, Kalshi kalshi, Ingestion in
 
     public record PolymarketOrderbookSnapshots(
             boolean enabled, boolean schedulerEnabled, int limit, long fixedDelayMs) {}
+
+    public record KalshiOrderbookSnapshots(
+            boolean enabled,
+            boolean schedulerEnabled,
+            int limit,
+            long fixedDelayMs,
+            int samples,
+            long sampleIntervalMs,
+            int parallelism) {}
 
     public record KalshiSeries(boolean enabled, Long minUpdatedTs) {}
 

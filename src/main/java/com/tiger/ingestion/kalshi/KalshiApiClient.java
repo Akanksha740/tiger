@@ -18,7 +18,9 @@ import org.springframework.web.util.UriComponentsBuilder;
         "${tiger.ingestion.kalshi-series.enabled:false}"
                 + " || ${tiger.ingestion.kalshi-events.enabled:false}"
                 + " || ${tiger.ingestion.kalshi-open-markets.enabled:false}"
-                + " || ${tiger.ingestion.kalshi-catalog.enabled:false}")
+                + " || ${tiger.ingestion.kalshi-catalog.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-orderbook-snapshots.enabled:false}"
+                + " || ${tiger.ingestion.kalshi-orderbook-snapshots.scheduler-enabled:false}")
 public class KalshiApiClient {
     private static final Duration RETRY_BACKOFF = Duration.ofSeconds(1);
 

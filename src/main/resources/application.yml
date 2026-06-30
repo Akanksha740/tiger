@@ -48,6 +48,15 @@ tiger:
       scheduler-enabled: false
       limit: ${TIGER_POLYMARKET_ORDERBOOK_SNAPSHOT_LIMIT:100}
       fixed-delay-ms: ${TIGER_POLYMARKET_ORDERBOOK_SNAPSHOT_FIXED_DELAY_MS:60000}
+    kalshi-orderbook-snapshots:
+      enabled: false
+      scheduler-enabled: false
+      # 0 = all active markets in the database
+      limit: ${TIGER_KALSHI_ORDERBOOK_SNAPSHOT_LIMIT:0}
+      fixed-delay-ms: ${TIGER_KALSHI_ORDERBOOK_SNAPSHOT_FIXED_DELAY_MS:60000}
+      samples: ${TIGER_KALSHI_ORDERBOOK_SNAPSHOT_SAMPLES:3}
+      sample-interval-ms: ${TIGER_KALSHI_ORDERBOOK_SNAPSHOT_SAMPLE_INTERVAL_MS:1000}
+      parallelism: ${TIGER_KALSHI_ORDERBOOK_SNAPSHOT_PARALLELISM:16}
     kalshi-series:
       enabled: false
       # min-updated-ts:  # optional epoch seconds for incremental /series
