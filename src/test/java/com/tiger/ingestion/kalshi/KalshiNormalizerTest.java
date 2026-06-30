@@ -41,6 +41,26 @@ class KalshiNormalizerTest {
     }
 
     @Test
+    void combinesPrimaryAndSecondaryRulesIntoDescription() throws Exception {
+        JsonNode market =
+                objectMapper.readTree(
+                        """
+                        {
+                          "ticker": "MKT-2",
+                          "event_ticker": "EVT-1",
+                          "title": "Will it happen?",
+                          "status": "open",
+                          "rules_primary": "Primary rule text.",
+                          "rules_secondary": "Secondary rule text."
+                        }
+                        """);
+
+        NormalizedMarket normalized = normalizer.normalizeMarket(market, null);
+
+        assertThat(normalized.description()).isEqualTo("Primary rule text.\n\nSecondary rule text.");
+    }
+
+    @Test
     void normalizesMarketWithYesNoOutcomes() throws Exception {
         JsonNode market =
                 objectMapper.readTree(

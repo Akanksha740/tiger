@@ -157,7 +157,7 @@ public class SearchRepository {
                         OR m.question ILIKE '%' || :q || '%'
                         OR m.title ILIKE '%' || :q || '%'
                         OR m.subtitle ILIKE '%' || :q || '%'
-                        OR m.rules_primary ILIKE '%' || :q || '%'
+                        OR m.description ILIKE '%' || :q || '%'
                         OR m.source_market_id ILIKE '%' || :q || '%'
                         OR m.slug ILIKE '%' || :q || '%'
                         OR lower(m.interval_code) = lower(:q)

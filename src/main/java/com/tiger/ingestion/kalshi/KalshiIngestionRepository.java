@@ -260,16 +260,16 @@ public class KalshiIngestionRepository {
                 """
                 INSERT INTO markets (
                     exchange, source_market_id, source_market_ticker, event_id, source_event_id,
-                    series_id, source_series_id, question, title, subtitle, rules_primary,
-                    rules_secondary, category, tags, status, source_status,
+                    series_id, source_series_id, question, title, subtitle, description,
+                    category, tags, status, source_status,
                     last_yes_price, last_no_price, best_yes_bid, best_yes_ask, best_no_bid, best_no_ask,
                     volume, volume_24h, open_interest, liquidity, settlement_value,
                     open_at, close_at, settled_at, source_updated_at
                 )
                 VALUES (
                     :exchange, :source_market_id, :source_market_ticker, :event_id, :source_event_id,
-                    :series_id, :source_series_id, :question, :title, :subtitle, :rules_primary,
-                    :rules_secondary, :category, string_to_array(:tags, chr(31)), :status,
+                    :series_id, :source_series_id, :question, :title, :subtitle, :description,
+                    :category, string_to_array(:tags, chr(31)), :status,
                     CAST(:source_status AS jsonb), :last_yes_price, :last_no_price,
                     :best_yes_bid, :best_yes_ask, :best_no_bid, :best_no_ask,
                     :volume, :volume_24h, :open_interest, :liquidity, :settlement_value,
@@ -284,8 +284,7 @@ public class KalshiIngestionRepository {
                     question = EXCLUDED.question,
                     title = EXCLUDED.title,
                     subtitle = EXCLUDED.subtitle,
-                    rules_primary = EXCLUDED.rules_primary,
-                    rules_secondary = EXCLUDED.rules_secondary,
+                    description = EXCLUDED.description,
                     category = EXCLUDED.category,
                     tags = EXCLUDED.tags,
                     status = EXCLUDED.status,
@@ -321,8 +320,7 @@ public class KalshiIngestionRepository {
                 .param("question", market.question())
                 .param("title", market.title())
                 .param("subtitle", market.subtitle())
-                .param("rules_primary", market.rulesPrimary())
-                .param("rules_secondary", market.rulesSecondary())
+                .param("description", market.description())
                 .param("category", market.category())
                 .param("tags", textArray(market.tags()))
                 .param("status", market.status().name())

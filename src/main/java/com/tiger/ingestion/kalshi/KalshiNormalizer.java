@@ -111,8 +111,7 @@ public class KalshiNormalizer {
                 defaultTitle(market, ticker),
                 text(market, "title"),
                 text(market, "subtitle", "sub_title"),
-                text(market, "rules_primary"),
-                text(market, "rules_secondary"),
+                combineRules(market),
                 text(market, "category"),
                 stringTags(market.path("tags")),
                 KalshiStatusNormalizer.normalize(market, "status"),
@@ -133,6 +132,18 @@ public class KalshiNormalizer {
                 sourceTimestamp(market, "settlement_ts"),
                 sourceTimestamp(market, "last_updated_ts"),
                 buildOutcomes(market));
+    }
+
+    private String combineRules(JsonNode market) {
+        String primary = text(market, "rules_primary");
+        String secondary = text(market, "rules_secondary");
+        if (primary == null) {
+            return secondary;
+        }
+        if (secondary == null) {
+            return primary;
+        }
+        return primary + "\n\n" + secondary;
     }
 
     private List<NormalizedMarket> normalizeNestedMarkets(JsonNode event) {
