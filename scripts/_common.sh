@@ -7,12 +7,21 @@ _tiger_repo_root() {
 
 _tiger_load_env() {
   _tiger_repo_root
-  if [[ -f .env ]]; then
-    set -a
-    # shellcheck disable=SC1091
-    source .env
-    set +a
+  if [[ ! -f .env ]]; then
+    return 0
   fi
+  local line key val
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]] || continue
+    key="${BASH_REMATCH[1]}"
+    val="${BASH_REMATCH[2]}"
+    # Preserve variables already set on the command line or parent shell.
+    if [[ -z "${!key+x}" ]]; then
+      export "$key=$val"
+    fi
+  done < .env
 }
 
 _tiger_load_db_config() {
@@ -113,6 +122,6 @@ tiger_prepare_java() {
       exit 1
     fi
   fi
-  # Export .env so shell env vars (if empty) do not override Spring defaults / .env file.
+  # Load .env defaults without overriding variables already exported by the caller.
   _tiger_load_env
 }

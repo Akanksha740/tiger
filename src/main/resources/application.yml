@@ -32,6 +32,10 @@ tiger:
     private-key-path: ${KALSHI_PRIVATE_KEY_PATH:}
     api-prefix: /trade-api/v2
     max-retries: 5
+    max-concurrent-requests: ${TIGER_KALSHI_MAX_CONCURRENT_REQUESTS:4}
+    connect-timeout-ms: ${TIGER_KALSHI_CONNECT_TIMEOUT_MS:20000}
+    read-timeout-ms: ${TIGER_KALSHI_READ_TIMEOUT_MS:30000}
+    transport-max-retries: ${TIGER_KALSHI_TRANSPORT_MAX_RETRIES:3}
   ingestion:
     polymarket-events:
       enabled: false
@@ -56,7 +60,7 @@ tiger:
       fixed-delay-ms: ${TIGER_KALSHI_ORDERBOOK_SNAPSHOT_FIXED_DELAY_MS:60000}
       samples: ${TIGER_KALSHI_ORDERBOOK_SNAPSHOT_SAMPLES:3}
       sample-interval-ms: ${TIGER_KALSHI_ORDERBOOK_SNAPSHOT_SAMPLE_INTERVAL_MS:1000}
-      parallelism: ${TIGER_KALSHI_ORDERBOOK_SNAPSHOT_PARALLELISM:16}
+      parallelism: ${TIGER_KALSHI_ORDERBOOK_SNAPSHOT_PARALLELISM:2}
     kalshi-series:
       enabled: false
       # min-updated-ts:  # optional epoch seconds for incremental /series

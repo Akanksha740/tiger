@@ -12,12 +12,14 @@ tiger_prepare_java
 LIMIT="${LIMIT:-0}"
 SAMPLES="${SAMPLES:-3}"
 SAMPLE_INTERVAL_MS="${SAMPLE_INTERVAL_MS:-1000}"
-PARALLELISM="${PARALLELISM:-16}"
+PARALLELISM="${PARALLELISM:-2}"
+KALSHI_ENV="${KALSHI_ENV:-demo}"
 export MAVEN_OPTS="${MAVEN_OPTS:--Xmx2g}"
 
-echo "Starting Kalshi orderbook poll (limit=${LIMIT}, samples=${SAMPLES}, sampleIntervalMs=${SAMPLE_INTERVAL_MS}, parallelism=${PARALLELISM}, heap=${MAVEN_OPTS})..."
+echo "Starting Kalshi orderbook poll (env=${KALSHI_ENV}, limit=${LIMIT}, samples=${SAMPLES}, sampleIntervalMs=${SAMPLE_INTERVAL_MS}, parallelism=${PARALLELISM}, heap=${MAVEN_OPTS})..."
 
 ./mvnw spring-boot:run -Dspring-boot.run.arguments="\
+  --tiger.kalshi.env=${KALSHI_ENV} \
   --tiger.ingestion.kalshi-orderbook-snapshots.enabled=true \
   --tiger.ingestion.kalshi-orderbook-snapshots.limit=${LIMIT} \
   --tiger.ingestion.kalshi-orderbook-snapshots.samples=${SAMPLES} \

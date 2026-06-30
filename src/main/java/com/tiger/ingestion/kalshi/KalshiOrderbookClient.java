@@ -15,11 +15,11 @@ public class KalshiOrderbookClient {
     private static final Logger log = LoggerFactory.getLogger(KalshiOrderbookClient.class);
     private static final int DEFAULT_DEPTH = 10;
 
-    private final KalshiApiClient apiClient;
+    private final KalshiPublicApiClient publicApiClient;
     private final ObjectMapper objectMapper;
 
-    public KalshiOrderbookClient(KalshiApiClient apiClient, ObjectMapper objectMapper) {
-        this.apiClient = apiClient;
+    public KalshiOrderbookClient(KalshiPublicApiClient publicApiClient, ObjectMapper objectMapper) {
+        this.publicApiClient = publicApiClient;
         this.objectMapper = objectMapper;
     }
 
@@ -29,7 +29,7 @@ public class KalshiOrderbookClient {
         }
         try {
             String encodedTicker = UriUtils.encodePathSegment(ticker.trim(), StandardCharsets.UTF_8);
-            JsonNode payload = apiClient.get(
+            JsonNode payload = publicApiClient.get(
                     "/markets/" + encodedTicker + "/orderbook", Map.of("depth", DEFAULT_DEPTH));
             KalshiOrderbookResponse response = objectMapper.treeToValue(payload, KalshiOrderbookResponse.class);
             if (response == null || !response.hasLiquidity()) {

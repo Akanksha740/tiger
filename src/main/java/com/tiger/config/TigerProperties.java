@@ -6,7 +6,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record TigerProperties(Polymarket polymarket, Kalshi kalshi, Ingestion ingestion) {
     public record Polymarket(String gammaBaseUrl, String clobBaseUrl, int pageLimit) {}
 
-    public record Kalshi(String env, String keyId, String privateKeyPath, String apiPrefix, int maxRetries) {
+    public record Kalshi(
+            String env,
+            String keyId,
+            String privateKeyPath,
+            String apiPrefix,
+            int maxRetries,
+            int maxConcurrentRequests,
+            int connectTimeoutMs,
+            int readTimeoutMs,
+            int transportMaxRetries) {
         public String resolvedBaseUrl() {
             return switch (env == null ? "demo" : env.toLowerCase()) {
                 case "prod", "production" -> "https://external-api.kalshi.com";

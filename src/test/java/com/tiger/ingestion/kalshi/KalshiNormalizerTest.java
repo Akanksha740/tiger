@@ -91,8 +91,11 @@ class KalshiNormalizerTest {
     }
 
     @Test
-    void mapsOpenStatusToActive() {
+    void mapsKalshiStatusesToCanonicalValues() {
         assertThat(KalshiStatusNormalizer.normalize("open")).isEqualTo(CanonicalStatus.active);
+        assertThat(KalshiStatusNormalizer.normalize("active")).isEqualTo(CanonicalStatus.active);
+        assertThat(KalshiStatusNormalizer.normalize("initialized")).isEqualTo(CanonicalStatus.unopened);
+        assertThat(KalshiStatusNormalizer.normalize("finalized")).isEqualTo(CanonicalStatus.settled);
         assertThat(KalshiStatusNormalizer.normalize("settled")).isEqualTo(CanonicalStatus.settled);
     }
 }

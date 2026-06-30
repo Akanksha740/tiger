@@ -6,10 +6,13 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.net.http.HttpClient;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -29,8 +32,17 @@ public class KalshiApiClient {
     private final KalshiRequestSigner signer;
 
     public KalshiApiClient(RestClient.Builder restClientBuilder, TigerProperties properties) {
-        this.restClient = restClientBuilder.build();
         this.kalshi = properties.kalshi();
+        Duration connectTimeout = Duration.ofMillis(Math.max(1, kalshi.connectTimeoutMs()));
+        Duration readTimeout = Duration.ofMillis(Math.max(1, kalshi.readTimeoutMs()));
+        HttpClient httpClient =
+                HttpClient.newBuilder()
+                        .connectTimeout(connectTimeout)
+                        .version(HttpClient.Version.HTTP_1_1)
+                        .build();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);
+        requestFactory.setReadTimeout(readTimeout);
+        this.restClient = restClientBuilder.requestFactory(requestFactory).build();
         this.signer = new KalshiRequestSigner(kalshi.keyId(), kalshi.privateKeyPath());
     }
 
@@ -84,6 +96,9 @@ public class KalshiApiClient {
                 sleepBackoff(attempt);
             } catch (KalshiRetryableException ex) {
                 lastFailure = ex;
+                sleepBackoff(attempt);
+            } catch (ResourceAccessException ex) {
+                lastFailure = new KalshiRetryableException("Kalshi transport error: " + ex.getMessage());
                 sleepBackoff(attempt);
             }
         }

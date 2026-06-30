@@ -109,12 +109,13 @@ class KalshiOrderbookSnapshotServiceTest {
                 new TigerProperties(
                         new TigerProperties.Polymarket(
                                 "https://gamma-api.polymarket.com", "https://clob.polymarket.com", 100),
-                        new TigerProperties.Kalshi("demo", "key", "secrets/kalshi_private.key", "/trade-api/v2", 3),
+                        new TigerProperties.Kalshi(
+                                "demo", "key", "secrets/kalshi_private.key", "/trade-api/v2", 3, 4, 20_000, 30_000, 3),
                         new TigerProperties.Ingestion(
                                 new TigerProperties.PolymarketEvents(false, 100, 0),
                                 new TigerProperties.PolymarketCatalog(false, 100, 0, 0),
                                 new TigerProperties.PolymarketOrderbookSnapshots(false, false, 100, 60_000),
-                                new TigerProperties.KalshiOrderbookSnapshots(false, false, 0, 60_000, 3, 1_000, 16),
+                                new TigerProperties.KalshiOrderbookSnapshots(false, false, 0, 60_000, 3, 1_000, 2),
                                 new TigerProperties.KalshiSeries(false, null),
                                 new TigerProperties.KalshiEvents(false, 50, true, false, null),
                                 new TigerProperties.KalshiOpenMarkets(false, 200),

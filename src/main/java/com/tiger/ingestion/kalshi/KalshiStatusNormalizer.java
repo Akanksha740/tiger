@@ -14,11 +14,11 @@ final class KalshiStatusNormalizer {
             return CanonicalStatus.unknown;
         }
         return switch (rawStatus.toLowerCase(Locale.ROOT)) {
-            case "unopened" -> CanonicalStatus.unopened;
-            case "open" -> CanonicalStatus.active;
-            case "paused" -> CanonicalStatus.paused;
+            case "unopened", "initialized" -> CanonicalStatus.unopened;
+            case "open", "active" -> CanonicalStatus.active;
+            case "paused", "inactive" -> CanonicalStatus.paused;
             case "closed" -> CanonicalStatus.closed;
-            case "settled" -> CanonicalStatus.settled;
+            case "settled", "finalized", "determined" -> CanonicalStatus.settled;
             default -> CanonicalStatus.unknown;
         };
     }

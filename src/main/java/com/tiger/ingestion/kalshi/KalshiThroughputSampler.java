@@ -29,7 +29,7 @@ public final class KalshiThroughputSampler {
         }
 
         TigerProperties.Kalshi kalshi =
-                new TigerProperties.Kalshi(kalshiEnv, keyId, keyPath, "/trade-api/v2", 5);
+                new TigerProperties.Kalshi(kalshiEnv, keyId, keyPath, "/trade-api/v2", 5, 4, 20_000, 30_000, 3);
         TigerProperties properties =
                 new TigerProperties(
                         new TigerProperties.Polymarket(
