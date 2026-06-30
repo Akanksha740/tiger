@@ -24,6 +24,7 @@ management:
 tiger:
   polymarket:
     gamma-base-url: ${TIGER_POLYMARKET_GAMMA_BASE_URL:https://gamma-api.polymarket.com}
+    clob-base-url: ${TIGER_POLYMARKET_CLOB_BASE_URL:https://clob.polymarket.com}
     page-limit: ${TIGER_POLYMARKET_PAGE_LIMIT:100}
   kalshi:
     env: ${KALSHI_ENV:demo}
@@ -42,6 +43,11 @@ tiger:
       start-offset: 0
       # 0 means continue until Gamma returns fewer than page-limit events
       max-pages: 0
+    polymarket-orderbook-snapshots:
+      enabled: false
+      scheduler-enabled: false
+      limit: ${TIGER_POLYMARKET_ORDERBOOK_SNAPSHOT_LIMIT:100}
+      fixed-delay-ms: ${TIGER_POLYMARKET_ORDERBOOK_SNAPSHOT_FIXED_DELAY_MS:60000}
     kalshi-series:
       enabled: false
       # min-updated-ts:  # optional epoch seconds for incremental /series

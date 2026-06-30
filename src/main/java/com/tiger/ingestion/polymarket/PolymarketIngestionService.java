@@ -6,8 +6,11 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,6 +23,7 @@ public class PolymarketIngestionService {
     private final PolymarketIngestionRepository repository;
     private final PolymarketIngestionStateRepository stateRepository;
     private final TigerProperties properties;
+    private final AtomicBoolean shutdownRequested = new AtomicBoolean(false);
 
     public PolymarketIngestionService(
             PolymarketGammaClient client,
@@ -32,6 +36,11 @@ public class PolymarketIngestionService {
         this.repository = repository;
         this.stateRepository = stateRepository;
         this.properties = properties;
+    }
+
+    @EventListener
+    void onContextClosed(ContextClosedEvent ignored) {
+        shutdownRequested.set(true);
     }
 
     public IngestionResult ingestEventsPage(Integer limit, Integer offset) {
@@ -53,13 +62,18 @@ public class PolymarketIngestionService {
         IngestionCounters counters = new IngestionCounters(startOffset);
         try {
             int offset = startOffset;
-            while (maxPages <= 0 || counters.pages < maxPages) {
+            pageLoop:
+            while ((maxPages <= 0 || counters.pages < maxPages) && !shutdownRequested.get()) {
                 JsonNode response = client.fetchEventsPage(pageLimit, offset);
                 List<NormalizedEvent> events = normalizer.normalizeEvents(response);
                 counters.pages++;
                 counters.fetched += events.size();
 
                 for (NormalizedEvent event : events) {
+                    if (shutdownRequested.get()) {
+                        counters.interrupted = true;
+                        break pageLoop;
+                    }
                     try {
                         repository.upsertEventTree(event);
                         counters.events++;
@@ -68,6 +82,13 @@ public class PolymarketIngestionService {
                                 .mapToLong(market -> market.outcomes().size())
                                 .sum();
                     } catch (RuntimeException ex) {
+                        if (shutdownRequested.get() || isShutdownFailure(ex)) {
+                            counters.interrupted = true;
+                            log.info(
+                                    "Polymarket ingestion interrupted during shutdown at event {}; stopping",
+                                    event.sourceEventId());
+                            break pageLoop;
+                        }
                         counters.failed++;
                         log.warn("Failed Polymarket event tree upsert for {}", event.sourceEventId(), ex);
                     }
@@ -85,6 +106,12 @@ public class PolymarketIngestionService {
                     break;
                 }
                 offset += pageLimit;
+            }
+
+            if (counters.interrupted || shutdownRequested.get()) {
+                counters.interrupted = true;
+                finishInterruptedRun(runId, counters);
+                return counters;
             }
 
             String status = counters.failed == 0 ? "success" : "partial_success";
@@ -115,6 +142,36 @@ public class PolymarketIngestionService {
         }
     }
 
+    private void finishInterruptedRun(UUID runId, IngestionCounters counters) {
+        String message = "Ingestion interrupted during application shutdown";
+        try {
+            stateRepository.markFailure(ENTITY_EVENTS, message);
+            stateRepository.finishRun(
+                    runId,
+                    "failed",
+                    counters.fetched,
+                    counters.events,
+                    0,
+                    counters.failed,
+                    String.valueOf(counters.nextOffset),
+                    message);
+        } catch (RuntimeException ex) {
+            log.debug("Skipped interrupted Polymarket run update because the application is shutting down", ex);
+        }
+    }
+
+    private boolean isShutdownFailure(Throwable ex) {
+        Throwable current = ex;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null && message.contains("HikariDataSource") && message.contains("has been closed")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
     private void validatePaging(int pageLimit, int startOffset, int maxPages) {
         if (pageLimit < 1 || pageLimit > 500) {
             throw new IllegalArgumentException("Polymarket ingestion limit must be between 1 and 500");
@@ -139,6 +196,7 @@ public class PolymarketIngestionService {
         public long outcomes;
         public int failed;
         public boolean terminalPage;
+        public boolean interrupted;
 
         IngestionCounters(int startOffset) {
             this.startOffset = startOffset;

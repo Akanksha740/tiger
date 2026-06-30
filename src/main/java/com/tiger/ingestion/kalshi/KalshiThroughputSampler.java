@@ -32,7 +32,8 @@ public final class KalshiThroughputSampler {
                 new TigerProperties.Kalshi(kalshiEnv, keyId, keyPath, "/trade-api/v2", 5);
         TigerProperties properties =
                 new TigerProperties(
-                        new TigerProperties.Polymarket("https://gamma-api.polymarket.com", 100),
+                        new TigerProperties.Polymarket(
+                                "https://gamma-api.polymarket.com", "https://clob.polymarket.com", 100),
                         kalshi,
                         null);
 

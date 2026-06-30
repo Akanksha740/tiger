@@ -3,9 +3,8 @@ package com.tiger.config;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "tiger")
-public record TigerProperties(
-        Polymarket polymarket, Kalshi kalshi, Ingestion ingestion) {
-    public record Polymarket(String gammaBaseUrl, int pageLimit) {}
+public record TigerProperties(Polymarket polymarket, Kalshi kalshi, Ingestion ingestion) {
+    public record Polymarket(String gammaBaseUrl, String clobBaseUrl, int pageLimit) {}
 
     public record Kalshi(String env, String keyId, String privateKeyPath, String apiPrefix, int maxRetries) {
         public String resolvedBaseUrl() {
@@ -22,6 +21,7 @@ public record TigerProperties(
     public record Ingestion(
             PolymarketEvents polymarketEvents,
             PolymarketCatalog polymarketCatalog,
+            PolymarketOrderbookSnapshots polymarketOrderbookSnapshots,
             KalshiSeries kalshiSeries,
             KalshiEvents kalshiEvents,
             KalshiOpenMarkets kalshiOpenMarkets,
@@ -35,6 +35,9 @@ public record TigerProperties(
      * paging until Gamma returns fewer than pageLimit events.
      */
     public record PolymarketCatalog(boolean enabled, int pageLimit, int startOffset, int maxPages) {}
+
+    public record PolymarketOrderbookSnapshots(
+            boolean enabled, boolean schedulerEnabled, int limit, long fixedDelayMs) {}
 
     public record KalshiSeries(boolean enabled, Long minUpdatedTs) {}
 

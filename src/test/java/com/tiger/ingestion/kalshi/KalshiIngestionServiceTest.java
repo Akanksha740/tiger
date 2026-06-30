@@ -45,11 +45,13 @@ class KalshiIngestionServiceTest {
     void setUp() {
         TigerProperties properties =
                 new TigerProperties(
-                        new TigerProperties.Polymarket("https://gamma-api.polymarket.com", 100),
+                        new TigerProperties.Polymarket(
+                                "https://gamma-api.polymarket.com", "https://clob.polymarket.com", 100),
                         new TigerProperties.Kalshi("demo", "key", "secrets/kalshi_private.key", "/trade-api/v2", 3),
                         new TigerProperties.Ingestion(
                                 new TigerProperties.PolymarketEvents(false, 100, 0),
                                 new TigerProperties.PolymarketCatalog(false, 100, 0, 0),
+                                new TigerProperties.PolymarketOrderbookSnapshots(false, false, 100, 60_000),
                                 new TigerProperties.KalshiSeries(false, null),
                                 new TigerProperties.KalshiEvents(false, 50, true, false, null),
                                 new TigerProperties.KalshiOpenMarkets(false, 200),
